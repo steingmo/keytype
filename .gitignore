@@ -1,0 +1,6 @@
+.build/
+build/
+.DS_Store
+assets/icon_1024.png
+assets/AppIcon.iconset/
+.claude/
