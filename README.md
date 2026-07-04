@@ -21,31 +21,6 @@ open build/KeyType.app
 Requires Xcode command line tools. The app is assembled into `build/KeyType.app`
 and ad-hoc signed. To install, drag it into `/Applications`.
 
-## Sharing with other Macs
-
-`./release.sh` produces `build/KeyType.zip` — a universal (Intel + Apple
-Silicon), Developer ID-signed, notarized build that opens on any Mac running
-macOS 13+ with no Gatekeeper warnings.
-
-One-time setup:
-
-1. **Developer ID certificate** — in Xcode → Settings → Accounts → select your
-   team → Manage Certificates → **+** → *Developer ID Application*. (Only the
-   Account Holder role can create this certificate type.)
-2. **Notary credentials** — create an app-specific password at
-   [account.apple.com](https://account.apple.com) → Sign-In and Security →
-   App-Specific Passwords, then store it:
-
-   ```sh
-   xcrun notarytool store-credentials keytype-notary \
-     --apple-id you@example.com --team-id TEAMID --password xxxx-xxxx-xxxx-xxxx
-   ```
-
-   Your team ID is shown at developer.apple.com → Membership details.
-
-Recipients still grant Accessibility permission on their own machine on first
-launch.
-
 ## First launch
 
 macOS will ask for **Accessibility** permission (System Settings → Privacy &
