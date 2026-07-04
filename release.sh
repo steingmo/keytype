@@ -24,13 +24,23 @@ STAGED_APP="$STAGE/KeyType.app"
 STAGED_ZIP="$STAGE/KeyType.zip"
 
 echo "==> Assembling ${STAGED_APP}"
-mkdir -p "$STAGED_APP/Contents/MacOS" "$STAGED_APP/Contents/Resources"
+mkdir -p "$STAGED_APP/Contents/MacOS" "$STAGED_APP/Contents/Resources" "$STAGED_APP/Contents/Frameworks"
 cp .build/apple/Products/Release/KeyType "$STAGED_APP/Contents/MacOS/KeyType"
 cp Info.plist "$STAGED_APP/Contents/Info.plist"
 cp AppIcon.icns "$STAGED_APP/Contents/Resources/AppIcon.icns"
+ditto .build/apple/Products/Release/Sparkle.framework "$STAGED_APP/Contents/Frameworks/Sparkle.framework"
+install_name_tool -add_rpath @executable_path/../Frameworks "$STAGED_APP/Contents/MacOS/KeyType"
 xattr -cr "$STAGED_APP"
 
 echo "==> Signing with '${IDENTITY}' (hardened runtime)"
+# Sparkle's nested helpers must each carry a hardened-runtime signature.
+SPARKLE="$STAGED_APP/Contents/Frameworks/Sparkle.framework"
+codesign --force --options runtime --timestamp --preserve-metadata=entitlements \
+    --sign "$IDENTITY" "$SPARKLE/Versions/B/XPCServices/Downloader.xpc"
+codesign --force --options runtime --timestamp --sign "$IDENTITY" "$SPARKLE/Versions/B/XPCServices/Installer.xpc"
+codesign --force --options runtime --timestamp --sign "$IDENTITY" "$SPARKLE/Versions/B/Autoupdate"
+codesign --force --options runtime --timestamp --sign "$IDENTITY" "$SPARKLE/Versions/B/Updater.app"
+codesign --force --options runtime --timestamp --sign "$IDENTITY" "$SPARKLE"
 codesign --force --options runtime --timestamp --sign "$IDENTITY" "$STAGED_APP"
 codesign --verify --strict --verbose=2 "$STAGED_APP"
 
@@ -49,6 +59,32 @@ mkdir -p build
 ditto "$STAGED_APP" "$APP"
 cp "$STAGED_ZIP" "$ZIP"
 
+echo "==> Generating appcast.xml"
+VERSION=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" Info.plist)
+SIGNATURE=$(.build/artifacts/sparkle/Sparkle/bin/sign_update "$ZIP" | tr -d '\n')
+PUBDATE=$(LC_ALL=C date "+%a, %d %b %Y %H:%M:%S %z")
+cat > appcast.xml <<APPCAST
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
+  <channel>
+    <title>KeyType</title>
+    <item>
+      <title>Version ${VERSION}</title>
+      <pubDate>${PUBDATE}</pubDate>
+      <sparkle:version>${VERSION}</sparkle:version>
+      <sparkle:shortVersionString>${VERSION}</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
+      <enclosure
+        url="https://github.com/steingmo/keytype/releases/download/v${VERSION}/KeyType.zip"
+        ${SIGNATURE}
+        type="application/octet-stream"/>
+    </item>
+  </channel>
+</rss>
+APPCAST
+
 echo ""
 echo "Done. Share ${ZIP} — it opens on any Mac (macOS 13+) with no warnings."
+echo "Publish the update: commit + push appcast.xml, then:"
+echo "  gh release create v${VERSION} ${ZIP} --title \"KeyType ${VERSION}\" --notes \"...\""
 spctl --assess --type execute --verbose "$APP" || true

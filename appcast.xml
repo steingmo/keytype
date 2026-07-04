@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
+  <channel>
+    <title>KeyType</title>
+    <item>
+      <title>Version 1.1.0</title>
+      <pubDate>Sat, 04 Jul 2026 09:59:44 +0100</pubDate>
+      <sparkle:version>1.1.0</sparkle:version>
+      <sparkle:shortVersionString>1.1.0</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
+      <enclosure
+        url="https://github.com/steingmo/keytype/releases/download/v1.1.0/KeyType.zip"
+        sparkle:edSignature="r1r5BZKCCTyEvLuZ19EDAUG/dh9tkeILYnpQS40dwco5RaSlEZPfHMS0xY0Ij/LtIdFBwLrYP1zCJMZLdMoUDA==" length="1679613"
+        type="application/octet-stream"/>
+    </item>
+  </channel>
+</rss>

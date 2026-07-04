@@ -4,6 +4,7 @@ import ApplicationServices
 @main
 struct KeyTypeApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    @StateObject private var updater = UpdaterViewModel()
 
     var body: some Scene {
         WindowGroup {
@@ -12,6 +13,9 @@ struct KeyTypeApp: App {
                 .preferredColorScheme(.dark)
         }
         .windowResizability(.contentSize)
+        .commands {
+            CheckForUpdatesCommand(updater: updater)
+        }
     }
 }
 

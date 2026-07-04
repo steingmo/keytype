@@ -9,9 +9,9 @@
     <key>CFBundleIdentifier</key>
     <string>com.steingrimosa.keytype</string>
     <key>CFBundleVersion</key>
-    <string>1.0</string>
+    <string>1.1.0</string>
     <key>CFBundleShortVersionString</key>
-    <string>1.0</string>
+    <string>1.1.0</string>
     <key>CFBundleExecutable</key>
     <string>KeyType</string>
     <key>CFBundlePackageType</key>
@@ -26,5 +26,11 @@
     <string>NSApplication</string>
     <key>CFBundleIconFile</key>
     <string>AppIcon</string>
+    <key>SUFeedURL</key>
+    <string>https://raw.githubusercontent.com/steingmo/keytype/main/appcast.xml</string>
+    <key>SUPublicEDKey</key>
+    <string>bfk3xLADn+lXCwFVWvwbYf4DL5e+imVJSHMz5s6sds0=</string>
+    <key>SUEnableAutomaticChecks</key>
+    <true/>
 </dict>
 </plist>
