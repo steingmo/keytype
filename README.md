@@ -4,12 +4,26 @@ A tiny native macOS app that "pastes" by typing — it sends your text as real
 keystrokes, so it works in fields, terminals, VMs, and remote desktops that
 block ⌘V.
 
-## Download
+## Install
 
-**[Download the latest KeyType.zip](https://github.com/steingmo/keytype/releases/latest)** —
-unzip, drag `KeyType.app` to Applications, open. Signed and notarized; runs on
-macOS 13+ (Intel and Apple Silicon). On first launch, grant Accessibility
-permission when prompted — it's required for sending keystrokes.
+With [Homebrew](https://brew.sh):
+
+```sh
+brew install --cask steingmo/tap/keytype
+```
+
+Or grab the latest notarized build from the
+[Releases page](https://github.com/steingmo/keytype/releases), unzip, and drag
+**KeyType.app** to Applications. The app is signed and notarized with a
+Developer ID, so it runs without Gatekeeper warnings.
+
+Requires macOS 13 (Ventura) or newer, Intel or Apple silicon. On first launch,
+grant Accessibility permission when prompted — it's required for sending
+keystrokes.
+
+The app checks for updates via [Sparkle](https://sparkle-project.org)
+(or on demand from the app menu) and can install them in place. Homebrew
+installs can also update with `brew upgrade --cask keytype`.
 
 ## Build
 
