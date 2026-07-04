@@ -87,4 +87,5 @@ echo ""
 echo "Done. Share ${ZIP} — it opens on any Mac (macOS 13+) with no warnings."
 echo "Publish the update: commit + push appcast.xml, then:"
 echo "  gh release create v${VERSION} ${ZIP} --title \"KeyType ${VERSION}\" --notes \"...\""
+echo "  /opt/homebrew/Library/Taps/steingmo/homebrew-tap/bump-cask.sh keytype ${VERSION}"
 spctl --assess --type execute --verbose "$APP" || true
