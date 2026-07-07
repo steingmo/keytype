@@ -198,12 +198,13 @@ struct ContentView: View {
         guard !text.isEmpty, !isTyping else { return }
         let content = text
         let typingSpeed = speed
+        let keyMap = Typer.layoutKeyMap() // main thread; TIS APIs assert on it
         isTyping = true
         Task.detached {
             if delay > 0 {
                 try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
             }
-            Typer.type(content, speed: typingSpeed)
+            Typer.type(content, speed: typingSpeed, keyMap: keyMap)
             await MainActor.run {
                 isTyping = false
                 text = ""

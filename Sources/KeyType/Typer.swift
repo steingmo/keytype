@@ -30,11 +30,13 @@ enum Typer {
     /// Newlines and tabs are sent as their actual keys so terminals and
     /// forms behave naturally; everything else goes out as a unicode
     /// keyboard event, so any character works regardless of keyboard layout.
-    static func type(_ text: String, speed: TypingSpeed) {
+    typealias KeyMap = [Character: (CGKeyCode, CGEventFlags)]
+
+    /// `keyMap` comes from `layoutKeyMap()`, which must be called on the
+    /// main thread (the TIS APIs assert on it); typing itself can then run
+    /// on any thread.
+    static func type(_ text: String, speed: TypingSpeed, keyMap: KeyMap) {
         let source = CGEventSource(stateID: .combinedSessionState)
-        // Real key codes matter for RDP/VNC/VMs, which forward the key code
-        // and ignore the unicode payload (virtualKey 0 arrives as "a").
-        let keyMap = layoutKeyMap()
 
         for character in text {
             switch character {
@@ -54,10 +56,13 @@ enum Typer {
     }
 
     /// Maps each character the current keyboard layout can produce with a
-    /// single keypress to its key code + modifiers. Dead keys are skipped
-    /// (they need a second keystroke and would misfire locally).
-    private static func layoutKeyMap() -> [Character: (CGKeyCode, CGEventFlags)] {
-        var map: [Character: (CGKeyCode, CGEventFlags)] = [:]
+    /// single keypress to its key code + modifiers. Real key codes matter
+    /// for RDP/VNC/VMs, which forward the key code and ignore the unicode
+    /// payload (virtualKey 0 arrives as "a"). Dead keys are skipped (they
+    /// need a second keystroke and would misfire locally).
+    /// Main thread only — the TIS APIs dispatch-assert on it.
+    static func layoutKeyMap() -> KeyMap {
+        var map: KeyMap = [:]
         guard let source = TISCopyCurrentKeyboardLayoutInputSource()?.takeRetainedValue(),
               let layoutPointer = TISGetInputSourceProperty(source, kTISPropertyUnicodeKeyLayoutData) else {
             return map
