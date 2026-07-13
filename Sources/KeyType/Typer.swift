@@ -38,6 +38,10 @@ enum Typer {
     static func type(_ text: String, speed: TypingSpeed, keyMap: KeyMap) {
         let source = CGEventSource(stateID: .combinedSessionState)
 
+        // Physically-held modifiers (e.g. ⌥⌃ from the hotkey) merge into
+        // synthesized keystrokes and corrupt them — wait for release first.
+        waitForModifiersReleased()
+
         for character in text {
             switch character {
             case "\n", "\r", "\r\n":
@@ -97,6 +101,16 @@ enum Typer {
             }
         }
         return map
+    }
+
+    private static func waitForModifiersReleased() {
+        let modifiers: CGEventFlags = [.maskShift, .maskControl, .maskAlternate, .maskCommand]
+        for _ in 0..<40 { // give up after ~2 s
+            if CGEventSource.flagsState(.combinedSessionState).intersection(modifiers).isEmpty {
+                return
+            }
+            usleep(50_000)
+        }
     }
 
     private static func postKey(_ keyCode: CGKeyCode, flags: CGEventFlags = [], source: CGEventSource?) {
