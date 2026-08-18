@@ -85,7 +85,9 @@ APPCAST
 
 echo ""
 echo "Done. Share ${ZIP} — it opens on any Mac (macOS 13+) with no warnings."
-echo "Publish the update: commit + push appcast.xml, then:"
-echo "  gh release create v${VERSION} ${ZIP} --title \"KeyType ${VERSION}\" --notes \"...\""
-echo "  /opt/homebrew/Library/Taps/steingmo/homebrew-tap/bump-cask.sh keytype ${VERSION}"
+echo "Publish in this order — the appcast advertises the release URL, so the"
+echo "release has to exist before the feed points anyone at it:"
+echo "  1. gh release create v${VERSION} ${ZIP} --title \"KeyType ${VERSION}\" --notes \"...\""
+echo "  2. git add appcast.xml && git commit -m \"KeyType ${VERSION}\" && git push"
+echo "  3. /opt/homebrew/Library/Taps/steingmo/homebrew-tap/bump-cask.sh keytype ${VERSION}"
 spctl --assess --type execute --verbose "$APP" || true
