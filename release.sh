@@ -16,6 +16,20 @@ ZIP=build/KeyType.zip
 echo "==> Building universal binary (arm64 + x86_64)"
 swift build -c release --arch arm64 --arch x86_64
 
+# Ask SwiftPM where the product landed rather than hardcoding it. A toolchain update
+# moved the universal build from .build/apple to .build/out; because the old directory
+# still held an outdated binary, a hardcoded path silently ships stale code under a
+# fresh version number.
+BIN_DIR=$(swift build -c release --arch arm64 --arch x86_64 --show-bin-path)
+PRODUCT="$BIN_DIR/KeyType"
+[ -x "$PRODUCT" ] || { echo "error: no product at $PRODUCT" >&2; exit 1; }
+
+ARCHS=$(lipo -archs "$PRODUCT")
+case "$ARCHS" in
+    *arm64*x86_64* | *x86_64*arm64*) ;;
+    *) echo "error: $PRODUCT is '$ARCHS', expected a universal binary" >&2; exit 1 ;;
+esac
+
 # Assemble and sign in a temp dir outside any iCloud-synced folder —
 # the iCloud file provider re-stamps xattrs that break codesign.
 STAGE=$(mktemp -d /tmp/keytype-release.XXXXXX)
@@ -25,10 +39,10 @@ STAGED_ZIP="$STAGE/KeyType.zip"
 
 echo "==> Assembling ${STAGED_APP}"
 mkdir -p "$STAGED_APP/Contents/MacOS" "$STAGED_APP/Contents/Resources" "$STAGED_APP/Contents/Frameworks"
-cp .build/apple/Products/Release/KeyType "$STAGED_APP/Contents/MacOS/KeyType"
+cp "$PRODUCT" "$STAGED_APP/Contents/MacOS/KeyType"
 cp Info.plist "$STAGED_APP/Contents/Info.plist"
 cp AppIcon.icns "$STAGED_APP/Contents/Resources/AppIcon.icns"
-ditto .build/apple/Products/Release/Sparkle.framework "$STAGED_APP/Contents/Frameworks/Sparkle.framework"
+ditto "$BIN_DIR/Sparkle.framework" "$STAGED_APP/Contents/Frameworks/Sparkle.framework"
 install_name_tool -add_rpath @executable_path/../Frameworks "$STAGED_APP/Contents/MacOS/KeyType"
 xattr -cr "$STAGED_APP"
 
