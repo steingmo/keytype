@@ -6,21 +6,25 @@ enum TypingSpeed: Int, CaseIterable {
     case slow = 0
     case medium = 1
     case fast = 2
+    case maximum = 3
 
     var label: String {
         switch self {
         case .slow: return "Slow"
         case .medium: return "Medium"
         case .fast: return "Fast"
+        case .maximum: return "Max"
         }
     }
 
-    /// Delay between characters, in microseconds.
+    /// Delay between characters, in microseconds (on top of the 1 ms
+    /// key-down → key-up gap in `postKey`).
     var interKeyDelay: UInt32 {
         switch self {
         case .slow: return 60_000
         case .medium: return 25_000
         case .fast: return 5_000
+        case .maximum: return 0
         }
     }
 }

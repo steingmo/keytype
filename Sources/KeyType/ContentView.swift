@@ -28,8 +28,8 @@ struct ContentView: View {
             ) {
                 CapsuleSlider(
                     fraction: Binding(
-                        get: { Double(speedIndex) / 2 },
-                        set: { speedIndex = Int(($0 * 2).rounded()) }
+                        get: { Double(speedIndex) / Double(TypingSpeed.allCases.count - 1) },
+                        set: { speedIndex = Int(($0 * Double(TypingSpeed.allCases.count - 1)).rounded()) }
                     ),
                     label: speed.label
                 )

@@ -20,7 +20,7 @@ in `Sources/KeyType/`:
   Characters no single key produces (emoji) fall back to a unicode event
   (virtualKey 0). Typing first waits for the user to release held
   modifiers (from the hotkey), which would otherwise corrupt keystrokes.
-  `TypingSpeed` defines the three inter-key delays (60 ms / 25 ms / 5 ms).
+  `TypingSpeed` defines four inter-key delays (60 / 25 / 5 / 0 ms; Max relies on the 1 ms down→up gap and was verified lossless at 1000 chars locally).
   Also exposes `hasAccessibilityPermission` (`AXIsProcessTrusted`).
   Known limit: Windows App's default *Scancode* keyboard mode sends ⌥ as
   Alt (not AltGr), so ⌥-symbols break over RDP — users switch it to
