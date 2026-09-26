@@ -27,9 +27,9 @@ enum TypingSpeed: Int, CaseIterable {
 
 enum Typer {
     /// Synthesizes the text as real HID keystrokes, character by character.
-    /// Newlines and tabs are sent as their actual keys so terminals and
-    /// forms behave naturally; everything else goes out as a unicode
-    /// keyboard event, so any character works regardless of keyboard layout.
+    /// Newlines and tabs are sent as their actual keys; other characters use
+    /// their key code + modifiers on the current layout, with a unicode
+    /// keyboard event only for characters no single key produces.
     typealias KeyMap = [Character: (CGKeyCode, CGEventFlags)]
 
     /// `keyMap` comes from `layoutKeyMap()`, which must be called on the

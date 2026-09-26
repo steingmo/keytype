@@ -4,9 +4,12 @@ struct ContentView: View {
     @AppStorage("text") private var text = ""
     @AppStorage("speedIndex") private var speedIndex = 2
     @AppStorage("countdownSeconds") private var countdownSeconds = 3
-    @AppStorage("hotKeyID") private var hotKeyID = "opt-ctrl-x"
+    @AppStorage("textHotKey") private var textHotKey = HotKey.defaultText
     @AppStorage("hotKeyEnabled") private var hotKeyEnabled = false
+    @AppStorage("clipboardHotKey") private var clipboardHotKey = HotKey.defaultClipboard
+    @AppStorage("clipboardHotKeyEnabled") private var clipboardHotKeyEnabled = false
 
+    @State private var recording: String? // which shortcut is being recorded
     @State private var secondsRemaining: Int?
     @State private var isTyping = false
     @State private var hasPermission = Typer.hasAccessibilityPermission
@@ -48,22 +51,17 @@ struct ContentView: View {
             Divider()
 
             settingRow(
-                title: "Global hotkey",
-                caption: "Send the text into any app, even when this window isn't focused."
+                title: "Type text hotkey",
+                caption: "Types the text above into the focused field in any app."
             ) {
-                HStack(spacing: 10) {
-                    Picker("", selection: $hotKeyID) {
-                        ForEach(HotKeyOption.all) { option in
-                            Text(option.display).tag(option.id)
-                        }
-                    }
-                    .labelsHidden()
-                    .frame(width: 110)
+                hotKeyControl($textHotKey, enabled: $hotKeyEnabled, id: "text")
+            }
 
-                    Toggle("", isOn: $hotKeyEnabled)
-                        .labelsHidden()
-                        .toggleStyle(.switch)
-                }
+            settingRow(
+                title: "Type clipboard hotkey",
+                caption: "Copy anything with ⌘C, then press this to type it out."
+            ) {
+                hotKeyControl($clipboardHotKey, enabled: $clipboardHotKeyEnabled, id: "clipboard")
             }
 
             if !hasPermission {
@@ -74,9 +72,12 @@ struct ContentView: View {
         }
         .padding(24)
         .background(background)
-        .onAppear(perform: configureHotKey)
-        .onChange(of: hotKeyEnabled) { _ in configureHotKey() }
-        .onChange(of: hotKeyID) { _ in configureHotKey() }
+        .onAppear(perform: configureHotKeys)
+        .onChange(of: hotKeyEnabled) { _ in configureHotKeys() }
+        .onChange(of: textHotKey) { _ in configureHotKeys() }
+        .onChange(of: clipboardHotKeyEnabled) { _ in configureHotKeys() }
+        .onChange(of: clipboardHotKey) { _ in configureHotKeys() }
+        .onChange(of: recording) { _ in configureHotKeys() }
         .onReceive(Timer.publish(every: 2, on: .main, in: .common).autoconnect()) { _ in
             hasPermission = Typer.hasAccessibilityPermission
         }
@@ -119,9 +120,22 @@ struct ContentView: View {
                 Text(caption)
                     .font(.system(size: 12))
                     .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             control()
+        }
+    }
+
+    private func hotKeyControl(_ hotKey: Binding<HotKey>, enabled: Binding<Bool>, id: String) -> some View {
+        HStack(spacing: 10) {
+            ShortcutRecorder(
+                hotKey: hotKey,
+                isRecording: Binding(get: { recording == id }, set: { recording = $0 ? id : nil })
+            )
+            Toggle("", isOn: enabled)
+                .labelsHidden()
+                .toggleStyle(.switch)
         }
     }
 
@@ -168,16 +182,27 @@ struct ContentView: View {
 
     // MARK: - Actions
 
-    private func configureHotKey() {
-        HotKeyManager.shared.onHotKey = {
-            // The user is already focused on the target field: type right away.
-            typeText(after: 0.2)
+    private func configureHotKeys() {
+        var bindings: [(HotKey, () -> Void)] = []
+        // While recording, nothing is registered so the recorder sees the keys.
+        // Hotkeys skip the countdown: the user is already in the target field.
+        if recording == nil {
+            if hotKeyEnabled {
+                bindings.append((textHotKey, { typeText(text, after: 0.2, clearAfter: true) }))
+            }
+            if clipboardHotKeyEnabled {
+                bindings.append((clipboardHotKey, typeClipboard))
+            }
         }
-        if hotKeyEnabled {
-            HotKeyManager.shared.register(HotKeyOption.named(hotKeyID))
-        } else {
-            HotKeyManager.shared.unregister()
+        HotKeyManager.shared.set(bindings)
+    }
+
+    private func typeClipboard() {
+        guard let clipboard = NSPasteboard.general.string(forType: .string), !clipboard.isEmpty else {
+            NSSound.beep()
+            return
         }
+        typeText(clipboard, after: 0.2, clearAfter: false)
     }
 
     private func startCountdown() {
@@ -190,13 +215,12 @@ struct ContentView: View {
                 remaining -= 1
             }
             secondsRemaining = nil
-            typeText(after: 0)
+            typeText(text, after: 0, clearAfter: true)
         }
     }
 
-    private func typeText(after delay: TimeInterval) {
-        guard !text.isEmpty, !isTyping else { return }
-        let content = text
+    private func typeText(_ content: String, after delay: TimeInterval, clearAfter: Bool) {
+        guard !content.isEmpty, !isTyping else { return }
         let typingSpeed = speed
         let keyMap = Typer.layoutKeyMap() // main thread; TIS APIs assert on it
         isTyping = true
@@ -207,7 +231,7 @@ struct ContentView: View {
             Typer.type(content, speed: typingSpeed, keyMap: keyMap)
             await MainActor.run {
                 isTyping = false
-                text = ""
+                if clearAfter { text = "" }
             }
         }
     }

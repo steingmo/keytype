@@ -13,21 +13,33 @@ in `Sources/KeyType/`:
 
 - `Typer.swift` — the core. Synthesizes keystrokes via `CGEvent` posted to
   `.cghidEventTap`. **Newlines/tabs are sent as real Return/Tab key codes**
-  so terminals and forms behave naturally; every other character goes out as
-  a unicode keyboard event (`keyboardSetUnicodeString`, virtualKey 0), which
-  works for emoji/non-ASCII regardless of keyboard layout. `TypingSpeed`
-  defines the three inter-key delays (60 ms / 25 ms / 5 ms). Also exposes
-  `hasAccessibilityPermission` (`AXIsProcessTrusted`).
-- `HotKeyManager.swift` — global hotkey via the **Carbon** hotkey API
-  (`RegisterEventHotKey`), chosen deliberately because it needs no extra
-  permissions and fires while the app is in the background. Fixed list of
-  five `HotKeyOption` combos (default ⌥⌃X); handler bounces to main queue.
+  so terminals and forms behave naturally; every other character is sent as
+  its **real key code + modifiers on the current layout** (`layoutKeyMap()`,
+  built with `UCKeyTranslate`; main thread only — TIS APIs assert on it),
+  because RDP/VNC/VMs forward key codes and ignore the unicode payload.
+  Characters no single key produces (emoji) fall back to a unicode event
+  (virtualKey 0). Typing first waits for the user to release held
+  modifiers (from the hotkey), which would otherwise corrupt keystrokes.
+  `TypingSpeed` defines the three inter-key delays (60 ms / 25 ms / 5 ms).
+  Also exposes `hasAccessibilityPermission` (`AXIsProcessTrusted`).
+  Known limit: Windows App's default *Scancode* keyboard mode sends ⌥ as
+  Alt (not AltGr), so ⌥-symbols break over RDP — users switch it to
+  *Unicode Keyboard* mode; not fixable from KeyType's side.
+- `HotKeyManager.swift` — `HotKey` (user-recorded combo, stored in
+  `@AppStorage` as "keyCode,carbonModifiers,label"), `ShortcutRecorder`
+  (click, press combo, Esc cancels; requires ⌘/⌃/⌥), and `HotKeyManager`,
+  which registers any number of global hotkeys via the **Carbon** API
+  (`RegisterEventHotKey`) — chosen deliberately because it needs no extra
+  permissions and fires while the app is in the background.
 - `ContentView.swift` — the single window UI: text editor, speed +
-  countdown `CapsuleSlider`s, hotkey picker/toggle, permission banner,
-  "Type now" button. All settings persist via `@AppStorage`. The hotkey
-  path types after a fixed 0.2 s delay (no countdown — the user is already
-  focused on the target field); the button path counts down so the user can
-  click the target. Text is cleared after a successful type. Permission
+  countdown `CapsuleSlider`s, two hotkey rows (type text, default ⌃⌥X;
+  type clipboard, default ⌃⌥V), permission banner, "Type now" button. All
+  settings persist via `@AppStorage`. Hotkeys are unregistered while a
+  recorder is active so it can capture the combo. The hotkey paths type
+  after a fixed 0.2 s delay (no countdown — the user is already focused on
+  the target field); the button path counts down so the user can click the
+  target. The text box is cleared after typing it; the clipboard is never
+  touched. Permission
   state is re-polled on a 2 s timer so the banner clears once the user
   grants access.
 - `KeyTypeApp.swift` — `@main`, fixed-width (460 pt) dark window,

@@ -47,10 +47,19 @@ the toggle for KeyType, then relaunch if needed.
 2. Pick a typing speed — use **Slow** for laggy terminals or remote sessions.
 3. Hit **Type now**, then click the target field during the countdown.
 
-Or enable the **global hotkey** (default ⌥⌃X): focus the target field in any
-app and press the hotkey — the stored text is typed right where your cursor
-is, no countdown needed.
+Or use the global hotkeys — click a shortcut to record your own combo:
 
-Newlines are sent as the Return key and tabs as the Tab key; everything else
-(including emoji and non-ASCII characters) is sent as unicode key events, so
-it works with any keyboard layout.
+- **Type text** (default ⌃⌥X) types the text in the box where your cursor is.
+- **Type clipboard** (default ⌃⌥V) types whatever you last copied with ⌘C —
+  copy anywhere, click into the target field, press the shortcut.
+
+Characters are sent as the real keys of your keyboard layout (Return and Tab
+included), so remote sessions receive actual keystrokes.
+
+### Remote Desktop (Windows App)
+
+Symbols your Mac layout types with ⌥ (on Nordic layouts: `\ @ { } [ ] | £`)
+come out wrong or missing in the Windows App's default **Scancode** keyboard
+mode: it forwards ⌥ as Windows Alt, while Windows puts those symbols on other
+keys behind AltGr. Switch the session to **Unicode Keyboard** mode in the
+Windows App menu bar and every character arrives as typed.
