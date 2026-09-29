@@ -117,14 +117,36 @@ enum Typer {
         }
     }
 
+    private static let modifierKeys: [(CGEventFlags, CGKeyCode)] = [
+        (.maskShift, CGKeyCode(kVK_Shift)),
+        (.maskAlternate, CGKeyCode(kVK_Option)),
+    ]
+
+    /// Presses the needed modifiers as real keys around the character, like a
+    /// person would: RDP/VM clients track modifier key presses and ignore the
+    /// flags on the character event itself (Shift was lost over RDP).
     private static func postKey(_ keyCode: CGKeyCode, flags: CGEventFlags = [], source: CGEventSource?) {
-        guard let down = CGEvent(keyboardEventSource: source, virtualKey: keyCode, keyDown: true),
-              let up = CGEvent(keyboardEventSource: source, virtualKey: keyCode, keyDown: false) else { return }
-        down.flags = flags
-        up.flags = flags
-        down.post(tap: .cghidEventTap)
+        let held = modifierKeys.filter { flags.contains($0.0) }
+        var active: CGEventFlags = []
+        for (flag, code) in held {
+            active.insert(flag)
+            post(code, down: true, flags: active, source: source)
+            usleep(2_000)
+        }
+        post(keyCode, down: true, flags: flags, source: source)
         usleep(1_000)
-        up.post(tap: .cghidEventTap)
+        post(keyCode, down: false, flags: flags, source: source)
+        for (flag, code) in held.reversed() {
+            usleep(2_000)
+            active.remove(flag)
+            post(code, down: false, flags: active, source: source)
+        }
+    }
+
+    private static func post(_ keyCode: CGKeyCode, down: Bool, flags: CGEventFlags, source: CGEventSource?) {
+        guard let event = CGEvent(keyboardEventSource: source, virtualKey: keyCode, keyDown: down) else { return }
+        event.flags = flags
+        event.post(tap: .cghidEventTap)
     }
 
     private static func postUnicode(_ character: Character, source: CGEventSource?) {

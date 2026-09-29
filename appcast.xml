@@ -3,14 +3,14 @@
   <channel>
     <title>KeyType</title>
     <item>
-      <title>Version 1.4.0</title>
-      <pubDate>Sat, 26 Sep 2026 11:27:38 +0100</pubDate>
-      <sparkle:version>1.4.0</sparkle:version>
-      <sparkle:shortVersionString>1.4.0</sparkle:shortVersionString>
+      <title>Version 1.4.1</title>
+      <pubDate>Tue, 29 Sep 2026 13:50:00 +0100</pubDate>
+      <sparkle:version>1.4.1</sparkle:version>
+      <sparkle:shortVersionString>1.4.1</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
       <enclosure
-        url="https://github.com/steingmo/keytype/releases/download/v1.4.0/KeyType.zip"
-        sparkle:edSignature="2Z+FjC8oYwDwB4rgrRkRsc0Cgw5crMUuRcORsvL3bYKT0ac4UK1FabhnAbuX5liueMK3Uzg18gjuZBeDCOzjCw==" length="1713661"
+        url="https://github.com/steingmo/keytype/releases/download/v1.4.1/KeyType.zip"
+        sparkle:edSignature="BsWTaCyxhsnyxPqbtMNHCN4r+nMsrIUwOa6/dCZMZ5OILAxk2zN2E+kN6GnhlwJTLwn/WI8PLyHvuF2MGtNBAw==" length="1715276"
         type="application/octet-stream"/>
     </item>
   </channel>

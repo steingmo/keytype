@@ -17,7 +17,10 @@ in `Sources/KeyType/`:
   its **real key code + modifiers on the current layout** (`layoutKeyMap()`,
   built with `UCKeyTranslate`; main thread only — TIS APIs assert on it),
   because RDP/VNC/VMs forward key codes and ignore the unicode payload.
-  Characters no single key produces (emoji) fall back to a unicode event
+  Needed Shift/Option are pressed as **real modifier key events** around
+  the character (flags on the character event alone are ignored by RDP/VM
+  clients — capitals and `#` arrived unshifted). Characters no single key
+  produces (emoji) fall back to a unicode event
   (virtualKey 0). Typing first waits for the user to release held
   modifiers (from the hotkey), which would otherwise corrupt keystrokes.
   `TypingSpeed` defines four inter-key delays (60 / 25 / 5 / 0 ms; Max relies on the 1 ms down→up gap and was verified lossless at 1000 chars locally).
