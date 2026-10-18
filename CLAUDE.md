@@ -25,6 +25,10 @@ in `Sources/KeyType/`:
   modifiers (from the hotkey), which would otherwise corrupt keystrokes.
   `TypingSpeed` defines four inter-key delays (60 / 25 / 5 / 0 ms; Max relies on the 1 ms down→up gap and was verified lossless at 1000 chars locally).
   Also exposes `hasAccessibilityPermission` (`AXIsProcessTrusted`).
+  The map can be built for a different layout than this Mac's ("Target
+  keyboard" picker, `targetLayoutID`): remote sessions that translate key
+  codes with their own layout (GeForce NOW = U.S.) need keys chosen for
+  *that* layout, or ⌥-symbols land on the wrong key (`@` came out `«`).
   Known limit: Windows App's default *Scancode* keyboard mode sends ⌥ as
   Alt (not AltGr), so ⌥-symbols break over RDP — users switch it to
   *Unicode Keyboard* mode; not fixable from KeyType's side.
@@ -35,7 +39,7 @@ in `Sources/KeyType/`:
   (`RegisterEventHotKey`) — chosen deliberately because it needs no extra
   permissions and fires while the app is in the background.
 - `ContentView.swift` — the single window UI: text editor, speed +
-  countdown `CapsuleSlider`s, two hotkey rows (type text, default ⌃⌥X;
+  countdown `CapsuleSlider`s, target-keyboard picker, two hotkey rows (type text, default ⌃⌥X;
   type clipboard, default ⌃⌥V), permission banner, "Type now" button. All
   settings persist via `@AppStorage`. Hotkeys are unregistered while a
   recorder is active so it can capture the combo. The hotkey paths type

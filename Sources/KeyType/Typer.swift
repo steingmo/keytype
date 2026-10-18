@@ -69,9 +69,11 @@ enum Typer {
     /// payload (virtualKey 0 arrives as "a"). Dead keys are skipped (they
     /// need a second keystroke and would misfire locally).
     /// Main thread only — the TIS APIs dispatch-assert on it.
-    static func layoutKeyMap() -> KeyMap {
+    /// `layoutID` picks the layout the *receiving* computer uses (a remote
+    /// session may not match this Mac); empty or unknown means this Mac's.
+    static func layoutKeyMap(layoutID: String = "") -> KeyMap {
         var map: KeyMap = [:]
-        guard let source = TISCopyCurrentKeyboardLayoutInputSource()?.takeRetainedValue(),
+        guard let source = keyboardLayout(id: layoutID) ?? TISCopyCurrentKeyboardLayoutInputSource()?.takeRetainedValue(),
               let layoutPointer = TISGetInputSourceProperty(source, kTISPropertyUnicodeKeyLayoutData) else {
             return map
         }
@@ -105,6 +107,29 @@ enum Typer {
             }
         }
         return map
+    }
+
+    /// Every installed keyboard layout as (id, name), sorted by name. Main thread only.
+    static func keyboardLayouts() -> [(id: String, name: String)] {
+        let filter = [kTISPropertyInputSourceType as String: kTISTypeKeyboardLayout as String] as CFDictionary
+        let sources = TISCreateInputSourceList(filter, true)?.takeRetainedValue() as? [TISInputSource] ?? []
+        return sources
+            .compactMap { s in
+                guard let id = stringProperty(s, kTISPropertyInputSourceID),
+                      let name = stringProperty(s, kTISPropertyLocalizedName) else { return nil }
+                return (id, name)
+            }
+            .sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
+    }
+
+    private static func keyboardLayout(id: String) -> TISInputSource? {
+        guard !id.isEmpty else { return nil }
+        let filter = [kTISPropertyInputSourceID as String: id] as CFDictionary
+        return (TISCreateInputSourceList(filter, true)?.takeRetainedValue() as? [TISInputSource])?.first
+    }
+
+    private static func stringProperty(_ source: TISInputSource, _ key: CFString) -> String? {
+        TISGetInputSourceProperty(source, key).map { Unmanaged<CFString>.fromOpaque($0).takeUnretainedValue() as String }
     }
 
     private static func waitForModifiersReleased() {

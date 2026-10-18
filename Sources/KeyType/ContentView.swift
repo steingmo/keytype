@@ -9,6 +9,9 @@ struct ContentView: View {
     @AppStorage("clipboardHotKey") private var clipboardHotKey = HotKey.defaultClipboard
     @AppStorage("clipboardHotKeyEnabled") private var clipboardHotKeyEnabled = false
 
+    @AppStorage("targetLayoutID") private var targetLayoutID = ""
+
+    @State private var layouts = Typer.keyboardLayouts()
     @State private var recording: String? // which shortcut is being recorded
     @State private var secondsRemaining: Int?
     @State private var isTyping = false
@@ -46,6 +49,19 @@ struct ContentView: View {
                     ),
                     label: "\(countdownSeconds)s"
                 )
+            }
+
+            settingRow(
+                title: "Target keyboard",
+                caption: "The layout the receiving computer uses. GeForce NOW: U.S."
+            ) {
+                Picker("", selection: $targetLayoutID) {
+                    Text("Same as this Mac").tag("")
+                    Divider()
+                    ForEach(layouts, id: \.id) { Text($0.name).tag($0.id) }
+                }
+                .labelsHidden()
+                .frame(width: 190)
             }
 
             Divider()
@@ -222,7 +238,7 @@ struct ContentView: View {
     private func typeText(_ content: String, after delay: TimeInterval, clearAfter: Bool) {
         guard !content.isEmpty, !isTyping else { return }
         let typingSpeed = speed
-        let keyMap = Typer.layoutKeyMap() // main thread; TIS APIs assert on it
+        let keyMap = Typer.layoutKeyMap(layoutID: targetLayoutID) // main thread; TIS APIs assert on it
         isTyping = true
         Task.detached {
             if delay > 0 {
