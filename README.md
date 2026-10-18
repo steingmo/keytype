@@ -56,12 +56,12 @@ Or use the global hotkeys — click a shortcut to record your own combo:
 Characters are sent as the real keys of your keyboard layout (Return and Tab
 included), so remote sessions receive actual keystrokes.
 
-### Cloud gaming and other remote sessions
+### Remote sessions with a different keyboard layout
 
-Some remote sessions, like **GeForce NOW**, read the keys with their own
-keyboard layout (U.S. for GeForce NOW). If symbols such as `@` come out
-wrong, set **Target keyboard** to that layout so KeyType presses the keys
-that layout expects.
+Some remote sessions and cloud services read the keys with their own
+keyboard layout rather than your Mac's. If symbols such as `@` come out
+wrong, set **Target keyboard** to the layout the remote computer uses so
+KeyType presses the keys that layout expects.
 
 ### Remote Desktop (Windows App)
 

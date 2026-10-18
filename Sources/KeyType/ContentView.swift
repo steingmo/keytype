@@ -53,7 +53,7 @@ struct ContentView: View {
 
             settingRow(
                 title: "Target keyboard",
-                caption: "The layout the receiving computer uses. GeForce NOW: U.S."
+                caption: "The keyboard layout the receiving computer uses."
             ) {
                 Picker("", selection: $targetLayoutID) {
                     Text("Same as this Mac").tag("")
